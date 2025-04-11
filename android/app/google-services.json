@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "15888755082",
+    "project_id": "trouvezmotel",
+    "storage_bucket": "trouvezmotel.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:15888755082:android:c1f03fe7bfd6c5e681c073",
+        "android_client_info": {
+          "package_name": "com.gytx.trouvez_motel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "15888755082-1gl93nsvhcl6g419ndd1t0vsd8b5r5se.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDrdCf7Rt41fWIMkZEbFuIM5d_28dRM4E8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "15888755082-1gl93nsvhcl6g419ndd1t0vsd8b5r5se.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
