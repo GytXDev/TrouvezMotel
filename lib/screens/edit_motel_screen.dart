@@ -166,7 +166,7 @@ class _EditMotelScreenState extends State<EditMotelScreen> {
   Widget _buildInputField(TextEditingController controller, String label,
       {TextInputType type = TextInputType.text, int maxLines = 1}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 20),
       child: TextFormField(
         controller: controller,
         keyboardType: type,
@@ -205,6 +205,7 @@ class _EditMotelScreenState extends State<EditMotelScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildInputField(_nameController, "Nom du motel"),
+                    SizedBox(height: 10),
                     DropdownButtonFormField<String>(
                       value: _selectedCity,
                       items: _cities
@@ -212,44 +213,55 @@ class _EditMotelScreenState extends State<EditMotelScreen> {
                               DropdownMenuItem(value: city, child: Text(city)))
                           .toList(),
                       onChanged: (val) => setState(() => _selectedCity = val),
-                      decoration: InputDecoration(labelText: "Ville"),
+                      decoration: InputDecoration(
+                        labelText: "Ville",
+                        border:
+                            OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
                       validator: (val) =>
                           val == null ? "Choisissez une ville" : null,
                     ),
+                    SizedBox(height: 20),
                     _buildInputField(_quartierController, "Quartier"),
                     SizedBox(height: 16),
                     Text("Tarifs",
                         style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 10),
                     ..._priceControllers.asMap().entries.map((entry) {
                       final i = entry.key;
                       final item = entry.value;
-                      return Row(
-                        children: [
-                          Expanded(
-                              child:
-                                  _buildInputField(item['label']!, "Libellé")),
-                          SizedBox(width: 10),
-                          Expanded(
-                              child: _buildInputField(
-                                  item['price']!, "Prix (FCFA)",
-                                  type: TextInputType.number)),
-                          IconButton(
-                            icon: Icon(Icons.remove_circle_outline,
-                                color: Colors.red),
-                            onPressed: () => _removePriceField(i),
-                          )
-                        ],
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Expanded(
+                                child: _buildInputField(
+                                    item['label']!, "Libellé")),
+                            SizedBox(width: 10),
+                            Expanded(
+                                child: _buildInputField(
+                                    item['price']!, "Prix (FCFA)",
+                                    type: TextInputType.number)),
+                            IconButton(
+                              icon: Icon(Icons.remove_circle_outline,
+                                  color: Colors.red),
+                              onPressed: () => _removePriceField(i),
+                            )
+                          ],
+                        ),
                       );
                     }).toList(),
                     TextButton.icon(
                         onPressed: _addPriceField,
                         icon: Icon(Icons.add),
                         label: Text("Ajouter un tarif")),
-                    SizedBox(height: 16),
+                    SizedBox(height: 20),
                     Text("Équipements",
                         style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 10),
                     Wrap(
                       spacing: 10,
+                      runSpacing: 10,
                       children: _features.entries.map((entry) {
                         return FilterChip(
                           label: Text(entry.key),
@@ -259,9 +271,10 @@ class _EditMotelScreenState extends State<EditMotelScreen> {
                         );
                       }).toList(),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 24),
                     Text("Images actuelles",
                         style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 10),
                     Wrap(
                       spacing: 10,
                       runSpacing: 10,
@@ -303,6 +316,7 @@ class _EditMotelScreenState extends State<EditMotelScreen> {
                     if (_newImages.isNotEmpty)
                       Wrap(
                         spacing: 10,
+                        runSpacing: 10,
                         children: _newImages.map((img) {
                           return ClipRRect(
                             borderRadius: BorderRadius.circular(8),

@@ -3,6 +3,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
+import 'screens/about_screen.dart';
+import 'screens/contact_screen.dart';
 import 'screens/thank_you_screen.dart';
 import 'theme.dart';
 import 'screens/splash_screen.dart';
@@ -62,6 +64,8 @@ class TrouvezMotelApp extends StatelessWidget {
         '/completeProfile': (context) => CompleteProfileScreen(),
         '/support': (context) => SupportScreen(),
         '/thankYou': (context) => ThankYouScreen(),
+        '/about': (context) => AboutScreen(),
+        '/contact': (context) => ContactScreen(),
       },
     );
   }

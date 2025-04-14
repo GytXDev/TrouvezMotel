@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'screens/home_screen.dart';
 import 'screens/add_motel_screen.dart';
 import 'screens/profile_screen.dart';
-import 'theme.dart'; 
+import 'theme.dart';
+
 
 class MainNavigation extends StatefulWidget {
   @override
@@ -10,7 +11,7 @@ class MainNavigation extends StatefulWidget {
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  final PageController _pageController = PageController();
+  late PageController _pageController;
   int _currentIndex = 0;
 
   final List<Widget> _pages = [
@@ -18,6 +19,14 @@ class _MainNavigationState extends State<MainNavigation> {
     AddMotelScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final initialIndex = ModalRoute.of(context)?.settings.arguments as int?;
+    _currentIndex = initialIndex ?? 0;
+    _pageController = PageController(initialPage: _currentIndex);
+  }
 
   void _onItemTapped(int index) {
     _pageController.animateToPage(
@@ -34,6 +43,7 @@ class _MainNavigationState extends State<MainNavigation> {
       body: PageView(
         controller: _pageController,
         physics: NeverScrollableScrollPhysics(),
+        onPageChanged: (index) => setState(() => _currentIndex = index),
         children: _pages,
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -46,18 +56,11 @@ class _MainNavigationState extends State<MainNavigation> {
         selectedLabelStyle: TextStyle(fontWeight: FontWeight.w600),
         unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w400),
         items: [
+          BottomNavigationBarItem(icon: Icon(Icons.explore), label: "Accueil"),
           BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
-            label: "Accueil",
-          ),
+              icon: Icon(Icons.add_circle_outline), label: "Ajouter"),
           BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline),
-            label: "Ajouter",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: "Compte",
-          ),
+              icon: Icon(Icons.person_outline), label: "Compte"),
         ],
       ),
     );

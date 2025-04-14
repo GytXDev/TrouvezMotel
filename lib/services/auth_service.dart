@@ -34,6 +34,23 @@ class AuthService {
     }
   }
 
+
+  /// S’inscrire avec un email et mot de passe
+  Future<UserCredential> signUpWithEmail(String email, String password) async {
+    return await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  /// Se connecter avec un email et mot de passe
+  Future<UserCredential> signInWithEmail(String email, String password) async {
+    return await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
   Future<bool> isProfileCompleted(String uid) async {
     final doc =
         await FirebaseFirestore.instance.collection('users').doc(uid).get();

@@ -24,7 +24,6 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
 
     final user = FirebaseAuth.instance.currentUser;
     final userId = user?.uid;
-
     if (userId == null) return;
 
     final userDoc =
@@ -55,9 +54,14 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Votre expérience",
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
+            Text("📝 Votre avis compte",
+                style: Theme.of(context).textTheme.headlineSmall),
+            SizedBox(height: 10),
+            Text(
+              "Aidez les autres utilisateurs à faire le bon choix en partageant votre expérience. Qu’avez-vous aimé ? Que pourrait-on améliorer ?",
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            SizedBox(height: 24),
             Container(
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -87,15 +91,16 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 24),
-            Text("Commentaire",
+            SizedBox(height: 30),
+            Text("Comment avez-vous trouvé ce motel ?",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             SizedBox(height: 8),
             TextField(
               controller: _commentController,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: "Partagez ce que vous avez apprécié ou non...",
+                hintText:
+                    "Parlez de votre séjour, du service, des équipements...",
                 filled: true,
                 fillColor: Colors.grey.shade100,
                 border: OutlineInputBorder(
@@ -116,7 +121,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                         child: CircularProgressIndicator(
                             color: Colors.white, strokeWidth: 2),
                       )
-                    : Text("Envoyer"),
+                    : Text("Partager mon avis"),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Colors.white,

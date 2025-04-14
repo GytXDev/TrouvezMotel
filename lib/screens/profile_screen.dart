@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../theme.dart';
 import 'edit_motel_screen.dart';
 import '../services/upload_service.dart'; // Pour deleteImageFromHostinger
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatelessWidget {
   final user = FirebaseAuth.instance.currentUser;
@@ -16,6 +17,36 @@ class ProfileScreen extends StatelessWidget {
       'name': data['name'],
       'badge': data['badge'],
     };
+  }
+
+  void _logout(BuildContext context) async {
+    final confirm = await showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Déconnexion"),
+        content: Text("Voulez-vous vraiment vous déconnecter ?"),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text("Annuler")),
+          TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text("Se déconnecter")),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await FirebaseAuth.instance.signOut();
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    }
+  }
+
+  void _launchPrivacyPolicy() async {
+    final uri = Uri.parse('https://gytx.dev/trouvezmotel/privacy_policy.html');
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw Exception('Impossible d’ouvrir $uri');
+    }
   }
 
   @override
@@ -40,7 +71,6 @@ class ProfileScreen extends StatelessWidget {
           backgroundColor: AppColors.background,
           body: Column(
             children: [
-              // ✅ AppBar Customisée
               Container(
                 padding:
                     EdgeInsets.only(top: 50, left: 20, right: 20, bottom: 16),
@@ -102,29 +132,77 @@ class ProfileScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
               SizedBox(height: 12),
-
-              // 🔸 Bouton de soutien
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: ListTile(
-                    leading: Icon(Icons.favorite, color: Colors.redAccent),
-                    title: Text("Soutenir l'application",
-                        style: textTheme.bodyMedium),
-                    trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                    onTap: () => Navigator.pushNamed(context, '/support'),
-                  ),
+                child: Column(
+                  children: [
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        leading: Icon(Icons.favorite, color: Colors.redAccent),
+                        title: Text("Soutenir l'application",
+                            style: textTheme.bodyMedium),
+                        trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () => Navigator.pushNamed(context, '/support'),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        leading: Icon(Icons.info_outline, color: Colors.blue),
+                        title: Text("Qui sommes-nous",
+                            style: textTheme.bodyMedium),
+                        trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () => Navigator.pushNamed(context, '/about'),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        leading:
+                            Icon(Icons.email_outlined, color: Colors.indigo),
+                        title: Text("Contact", style: textTheme.bodyMedium),
+                        trailing: Icon(Icons.arrow_forward_ios, size: 16),
+                        onTap: () => Navigator.pushNamed(context, '/contact'),
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        leading: Icon(Icons.privacy_tip, color: Colors.teal),
+                        title: Text("Politique de confidentialité",
+                            style: textTheme.bodyMedium),
+                        trailing: Icon(Icons.open_in_new, size: 16),
+                        onTap: _launchPrivacyPolicy,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      child: ListTile(
+                        leading: Icon(Icons.logout, color: Colors.grey[800]),
+                        title: Text("Déconnexion", style: textTheme.bodyMedium),
+                        onTap: () => _logout(context),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-
               SizedBox(height: 12),
-
-              // 🔸 Liste des motels créés
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance

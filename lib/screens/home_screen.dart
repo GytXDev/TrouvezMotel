@@ -29,14 +29,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _getUserLocation() async {
     final permission = await Geolocator.requestPermission();
+    if (!mounted) return; // ✅ vérifie que le widget est encore présent
+
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
-      setState(() => locationDenied = true);
+      if (mounted) setState(() => locationDenied = true);
       return;
     }
+
     final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    setState(() => _userPosition = position);
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    if (mounted) {
+      setState(() => _userPosition = position);
+    }
   }
 
   double _calculateDistance(double motelLat, double motelLng) {
@@ -65,6 +72,20 @@ class _HomeScreenState extends State<HomeScreen> {
     return total / reviews.docs.length;
   }
 
+  // Récupère le plus petit tarif
+  String getFirstPrice(Map<String, dynamic> data) {
+    final pricesRaw = data['prices'];
+    if (pricesRaw is Map) {
+      final values = pricesRaw.values.whereType<num>().toList();
+      if (values.isNotEmpty) {
+        values.sort();
+        return values.first.toString();
+      }
+    }
+    return 'N/A';
+  }
+
+  // Shimmer
   Widget buildShimmerList() {
     return ListView.builder(
       itemCount: 5,
@@ -111,9 +132,10 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Image
             ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              child: imageUrl != ''
+              child: imageUrl.isNotEmpty
                   ? Image.network(
                       'https://gytx.dev/api/image-proxy.php?url=$imageUrl',
                       height: 180,
@@ -126,14 +148,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Icon(Icons.image_not_supported, size: 60),
                     ),
             ),
+            // Infos
             Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name,
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  // Nom
+                  Text(
+                    name,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  // Note
                   if (rating != null && rating > 0) ...[
                     SizedBox(height: 4),
                     Row(
@@ -151,14 +177,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                   SizedBox(height: 4),
-                  Text('$city — À partir de $price FCFA',
-                      style: TextStyle(color: Colors.grey[700])),
+                  // Tarif
+                  Text(
+                    '$city — À partir de $price FCFA',
+                    style: TextStyle(color: Colors.grey[700]),
+                  ),
+                  // Distance
                   if (distance != null) ...[
                     SizedBox(height: 4),
-                    Text('À ${distance.toStringAsFixed(1)} km',
-                        style:
-                            TextStyle(color: Colors.grey[500], fontSize: 12)),
-                  ]
+                    Text(
+                      'À ${distance.toStringAsFixed(1)} km',
+                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -175,11 +206,15 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Icon(Icons.location_off, size: 48, color: Colors.grey),
           SizedBox(height: 10),
-          Text("Localisation désactivée",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+          Text(
+            "Localisation désactivée",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
           SizedBox(height: 5),
-          Text("Activez-la pour afficher les motels proches.",
-              style: TextStyle(fontSize: 14, color: Colors.grey)),
+          Text(
+            "Activez-la pour afficher les motels proches.",
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
         ],
       ),
     );
@@ -192,6 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // 🏷 Header
           Container(
             padding: EdgeInsets.only(top: 40, bottom: 16),
             decoration: BoxDecoration(
@@ -211,6 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Titre
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Text(
@@ -223,6 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 SizedBox(height: 12),
+                // Choix de la ville
                 SizedBox(
                   height: 40,
                   child: ListView.builder(
@@ -255,6 +293,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+
+          // 🏷 Corps
           Expanded(
             child: locationDenied
                 ? _buildLocationError()
@@ -264,62 +304,79 @@ class _HomeScreenState extends State<HomeScreen> {
                         .orderBy('createdAt', descending: true)
                         .snapshots(),
                     builder: (context, snapshot) {
+                      // Si pas de data ou position manquante => shimmer
                       if (!snapshot.hasData || _userPosition == null) {
                         return buildShimmerList();
                       }
 
                       final docs = snapshot.data!.docs;
 
-                      List<Map<String, dynamic>> motelsWithDistance =
-                          docs.map((doc) {
-                        final data = doc.data() as Map<String, dynamic>;
-                        final id = doc.id;
+                      // On convertit chaque doc
+                      final motelsWithDistance = docs
+                          .map((doc) {
+                            final data = doc.data() as Map<String, dynamic>?;
+                            if (data == null) return null; // prudence
+                            final String id = doc.id;
 
-                        double? distance;
-                        if (data['latitude'] != null &&
-                            data['longitude'] != null) {
-                          distance = _calculateDistance(
-                            data['latitude'],
-                            data['longitude'],
-                          );
-                        }
+                            double? distance;
+                            final lat = data['latitude'];
+                            final lng = data['longitude'];
+                            if (lat != null && lng != null) {
+                              distance = _calculateDistance(
+                                lat is double ? lat : (lat as num).toDouble(),
+                                lng is double ? lng : (lng as num).toDouble(),
+                              );
+                            }
 
-                        return {'id': id, 'data': data, 'distance': distance};
-                      }).toList();
+                            return {
+                              'id': id,
+                              'data': data,
+                              'distance': distance,
+                            };
+                          })
+                          .where((e) => e != null)
+                          .toList();
 
-                      List<Map<String, dynamic>> filteredMotels =
-                          motelsWithDistance.where((m) {
+                      // Filtrage par ville
+                      final filteredMotels = motelsWithDistance.where((m) {
+                        // m peut être non-null car on a filtré ci-dessus
+                        final data = m!['data'] as Map<String, dynamic>;
+                        final city = data['city']?.toString() ?? '';
                         if (selectedFilterCity == "Tous") return true;
-                        return m['data']['city'] == selectedFilterCity;
+                        return city == selectedFilterCity;
                       }).toList();
 
+                      // Tri par distance
                       filteredMotels.sort((a, b) {
-                        final distA = a['distance'] ?? double.infinity;
-                        final distB = b['distance'] ?? double.infinity;
+                        final distA =
+                            a!['distance'] as double? ?? double.infinity;
+                        final distB =
+                            b!['distance'] as double? ?? double.infinity;
                         return distA.compareTo(distB);
                       });
 
+                      // Construction de la liste
                       return ListView.builder(
                         itemCount: filteredMotels.length,
                         itemBuilder: (context, index) {
                           final motel = filteredMotels[index];
-                          final data = motel['data'] as Map<String, dynamic>;
-                          final id = motel['id'];
-                          final distance = motel['distance'] as double?;
+                          final data = motel!['data'] as Map<String, dynamic>;
+                          final String id = motel['id'] as String;
+                          final double? distance = motel['distance'] as double?;
 
                           final imageUrl =
-                              (data['images'] as List?)?.first ?? '';
-                          final name = data['name'] ?? 'Sans nom';
-                          final city = data['city'] ?? '';
-                          final prices = (data['prices'] ?? {}) as Map;
-                          final firstPrice = prices.isNotEmpty
-                              ? prices.values.first.toString()
-                              : 'N/A';
+                              (data['images'] as List?)?.first?.toString() ??
+                                  '';
+                          final name = data['name']?.toString() ?? 'Sans nom';
+                          final city = data['city']?.toString() ?? '';
+
+                          // Récupère le plus petit tarif
+                          final firstPrice = getFirstPrice(data);
 
                           return FutureBuilder<double>(
                             future: _getAverageRating(id),
-                            builder: (context, snapshot) {
-                              final rating = snapshot.data;
+                            builder: (context, ratingSnap) {
+                              final rating = ratingSnap.data ?? 0.0;
 
                               return buildMotelCard(
                                 imageUrl: imageUrl,

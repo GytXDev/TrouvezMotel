@@ -68,21 +68,20 @@ class _AddMotelScreenState extends State<AddMotelScreen> {
     final permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
-      final requested = await Geolocator.requestPermission();
-      if (requested == LocationPermission.denied ||
-          requested == LocationPermission.deniedForever) {
-        setState(() => _locationDenied = true);
-        return;
-      }
+      if (!mounted) return;
+      setState(() => _locationDenied = true);
+      return;
     }
 
     try {
       final position = await Geolocator.getCurrentPosition();
+      if (!mounted) return;
       setState(() {
         _currentPosition = position;
         _locationDenied = false;
       });
     } catch (_) {
+      if (!mounted) return;
       setState(() => _locationDenied = true);
     }
   }
@@ -170,7 +169,6 @@ class _AddMotelScreenState extends State<AddMotelScreen> {
       setState(() => _isSaving = false);
     }
   }
-
 
   Widget _buildTextField(TextEditingController controller, String label,
       {TextInputType keyboardType = TextInputType.text, int maxLines = 1}) {

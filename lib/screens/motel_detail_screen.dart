@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MotelDetailScreen extends StatelessWidget {
   @override
@@ -25,7 +26,6 @@ class MotelDetailScreen extends StatelessWidget {
       return "${date.day} ${months[date.month - 1]} ${date.year}";
     }
 
-
     return Scaffold(
       appBar: AppBar(title: Text("Détails du motel")),
       body: FutureBuilder<DocumentSnapshot>(
@@ -41,6 +41,7 @@ class MotelDetailScreen extends StatelessWidget {
 
           final name = motel['name'] ?? '';
           final city = motel['city'] ?? '';
+          final quartier = motel['quartier'] ?? '';
           final contact = motel['contact'];
           final images = List<String>.from(motel['images'] ?? []);
           final prices = Map<String, dynamic>.from(motel['prices'] ?? {});
@@ -77,11 +78,30 @@ class MotelDetailScreen extends StatelessWidget {
                     ),
                   ),
                 SizedBox(height: 16),
-                Text(name,
-                    style:
-                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                Text(city, style: TextStyle(color: Colors.grey[600])),
-                SizedBox(height: 10),
+                Text(
+                  name,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 6),
+                Row(
+                  children: [
+                    Chip(
+                      avatar: Text("🏘️", style: TextStyle(fontSize: 16)),
+                      label: Text(
+                        quartier.isNotEmpty ? quartier : "Quartier non précisé",
+                        style: TextStyle(color: Colors.grey[800]),
+                      ),
+                      backgroundColor: Colors.grey[200],
+                      shape: StadiumBorder(),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      city,
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
                 FutureBuilder<double>(
                   future: _getAverageRating(motelId),
                   builder: (context, snap) {
@@ -120,6 +140,7 @@ class MotelDetailScreen extends StatelessWidget {
                 SizedBox(height: 8),
                 Wrap(
                   spacing: 10,
+                  runSpacing: 10,
                   children:
                       features.entries.where((e) => e.value == true).map((e) {
                     return Chip(
@@ -154,7 +175,7 @@ class MotelDetailScreen extends StatelessWidget {
                   label: Text("Donner un avis"),
                 ),
                 SizedBox(height: 30),
-               StreamBuilder<QuerySnapshot>(
+                StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('reviews')
                       .where('motelId', isEqualTo: motelId)
@@ -188,61 +209,97 @@ class MotelDetailScreen extends StatelessWidget {
                                     timestamp.millisecondsSinceEpoch)
                                 : null;
                             final photoUrl = data['photoURL'] ?? null;
+                            final currentUser =
+                                FirebaseAuth.instance.currentUser;
+                            final isOwnReview =
+                                currentUser?.uid == data['userId'];
 
-                            return Card(
-                              margin: EdgeInsets.only(bottom: 12),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12)),
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12, horizontal: 16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 16,
-                                          backgroundImage: photoUrl != null
-                                              ? NetworkImage(photoUrl)
-                                              : null,
-                                          child: photoUrl == null
-                                              ? Icon(Icons.person,
-                                                  size: 16, color: Colors.white)
-                                              : null,
-                                          backgroundColor: Colors.grey,
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          name,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                        Spacer(),
-                                        if (date != null)
-                                          Text(
-                                            "${_formatDate(date)}",
-                                            style: TextStyle(
-                                                color: Colors.grey,
-                                                fontSize: 12),
+                            return GestureDetector(
+                              onLongPress: () async {
+                                if (!isOwnReview) return;
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: Text("Supprimer cet avis ?"),
+                                    content:
+                                        Text("Cette action est irréversible."),
+                                    actions: [
+                                      TextButton(
+                                        child: Text("Annuler"),
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                      ),
+                                      TextButton(
+                                        child: Text("Supprimer",
+                                            style:
+                                                TextStyle(color: Colors.red)),
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                      )
+                                    ],
+                                  ),
+                                );
+                                if (confirmed == true) {
+                                  await doc.reference.delete();
+                                }
+                              },
+                              child: Card(
+                                margin: EdgeInsets.only(bottom: 12),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 12, horizontal: 16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          CircleAvatar(
+                                            radius: 16,
+                                            backgroundImage: photoUrl != null
+                                                ? NetworkImage(photoUrl)
+                                                : null,
+                                            child: photoUrl == null
+                                                ? Icon(Icons.person,
+                                                    size: 16,
+                                                    color: Colors.white)
+                                                : null,
+                                            backgroundColor: Colors.grey,
                                           ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 6),
-                                    Row(
-                                      children: List.generate(5, (i) {
-                                        return Icon(
-                                          i < rating
-                                              ? Icons.star
-                                              : Icons.star_border,
-                                          size: 18,
-                                          color: Colors.amber,
-                                        );
-                                      }),
-                                    ),
-                                    SizedBox(height: 8),
-                                    Text(comment),
-                                  ],
+                                          SizedBox(width: 8),
+                                          Text(
+                                            name,
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w600),
+                                          ),
+                                          Spacer(),
+                                          if (date != null)
+                                            Text(
+                                              "${_formatDate(date)}",
+                                              style: TextStyle(
+                                                  color: Colors.grey,
+                                                  fontSize: 12),
+                                            ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 6),
+                                      Row(
+                                        children: List.generate(5, (i) {
+                                          return Icon(
+                                            i < rating
+                                                ? Icons.star
+                                                : Icons.star_border,
+                                            size: 18,
+                                            color: Colors.amber,
+                                          );
+                                        }),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(comment),
+                                    ],
+                                  ),
                                 ),
                               ),
                             );

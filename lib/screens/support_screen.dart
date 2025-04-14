@@ -28,7 +28,7 @@ class _SupportScreenState extends State<SupportScreen> {
 
   final NumberFormat _amountFormatter = NumberFormat.decimalPattern('fr');
 
-  String _formatAmount(int amount) {
+  String _formatAmount(num amount) {
     return "${_amountFormatter.format(amount)} CFA";
   }
 
@@ -38,6 +38,8 @@ class _SupportScreenState extends State<SupportScreen> {
 
     final uid = FirebaseAuth.instance.currentUser?.uid;
     final name = _nameController.text.trim();
+    final numero = _numeroController.text.trim();
+
     final amount = _customAmountSelected
         ? int.tryParse(_customAmountController.text.trim())
         : _selectedAmount;
@@ -58,6 +60,7 @@ class _SupportScreenState extends State<SupportScreen> {
           : 'Virement',
       'validated': _selectedMethod == DonationMethod.mobileMoney,
       'userId': uid,
+      'contactNumber': numero,
       'createdAt': FieldValue.serverTimestamp(),
     });
 
@@ -83,7 +86,7 @@ class _SupportScreenState extends State<SupportScreen> {
           ],
         ),
         content: Text(
-          "Un grand merci pour votre soutien !\n\nVous êtes désormais Donateur.",
+          "Merci pour votre don !\n\nNous vous contacterons très vite à ce numéro : $numero",
           style: GoogleFonts.poppins(),
         ),
         actions: [
@@ -159,10 +162,13 @@ class _SupportScreenState extends State<SupportScreen> {
                       SizedBox(height: 10),
                       _buildAmountSelector(),
                       SizedBox(height: 20),
-                      if (_selectedMethod == DonationMethod.mobileMoney)
+                      if (_selectedMethod == DonationMethod.mobileMoney ||
+                          _selectedMethod == DonationMethod.virement)
                         _buildField(
                           _numeroController,
-                          "Numéro Mobile Money",
+                          _selectedMethod == DonationMethod.mobileMoney
+                              ? "Numéro Mobile Money"
+                              : "Numéro de contact pour le virement",
                           isPhone: true,
                         ),
                       SizedBox(height: 10),
@@ -253,7 +259,7 @@ class _SupportScreenState extends State<SupportScreen> {
   }
 
   Widget _buildAmountSelector() {
-    final chips = [500, 2000, 3000, 5000, 10000];
+    final chips = [500, 2000, 3000, 5000, 10000, 200];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,11 +270,15 @@ class _SupportScreenState extends State<SupportScreen> {
         SizedBox(height: 8),
         Wrap(
           spacing: 10,
-          runSpacing: 10, // Ajout espace vertical
+          runSpacing: 10,
           children: chips
               .map((amount) => ChoiceChip(
-                    label: Text(_formatAmount(amount),
-                        style: GoogleFonts.poppins()),
+                    label: Text(
+                      amount == 200
+                          ? "Mini soutien (200 CFA)"
+                          : _formatAmount(amount),
+                      style: GoogleFonts.poppins(),
+                    ),
                     selected:
                         _selectedAmount == amount && !_customAmountSelected,
                     onSelected: (_) {
@@ -369,7 +379,7 @@ class _SupportScreenState extends State<SupportScreen> {
               style: GoogleFonts.poppins());
         }
 
-        final donations = snapshot.data!.docs;
+        final donations = snapshot.data!.docs.take(3).toList();
 
         return Column(
           children: donations.map((doc) {
