@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../theme.dart';
+import 'appartements/edit_appartement_screen.dart';
 import 'edit_motel_screen.dart';
 import '../services/upload_service.dart'; // Pour deleteImageFromHostinger
 import 'package:url_launcher/url_launcher.dart';
+
+import 'restaurants/edit_restaurant_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final user = FirebaseAuth.instance.currentUser;
@@ -206,7 +209,7 @@ class ProfileScreen extends StatelessWidget {
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
-                      .collection('motels')
+                      .collection('places')
                       .where('createdBy', isEqualTo: user!.uid)
                       .snapshots(),
                   builder: (context, snapshot) {
@@ -215,18 +218,18 @@ class ProfileScreen extends StatelessWidget {
                     if (!snapshot.hasData)
                       return Center(child: CircularProgressIndicator());
 
-                    final motels = snapshot.data!.docs;
+                    final places = snapshot.data!.docs;
 
-                    if (motels.isEmpty)
+                    if (places.isEmpty) {
                       return Center(
-                          child:
-                              Text("Vous n'avez encore ajouté aucun motel."));
+                          child: Text("Vous n'avez encore ajouté aucun lieu."));
+                    }
 
                     return ListView.builder(
-                      itemCount: motels.length,
+                      itemCount: places.length,
                       padding: EdgeInsets.all(16),
                       itemBuilder: (context, index) {
-                        final doc = motels[index];
+                        final doc = places[index];
                         final data = doc.data() as Map<String, dynamic>?;
 
                         if (data == null) return SizedBox();
@@ -236,6 +239,7 @@ class ProfileScreen extends StatelessWidget {
                         final image = images.isNotEmpty ? images.first : '';
                         final name = data['name']?.toString() ?? 'Sans nom';
                         final city = data['city']?.toString() ?? '';
+                        final type = data['type']?.toString().toLowerCase();
 
                         return Card(
                           margin: EdgeInsets.only(bottom: 16),
@@ -264,12 +268,25 @@ class ProfileScreen extends StatelessWidget {
                             trailing: PopupMenuButton<String>(
                               onSelected: (value) {
                                 if (value == 'edit') {
+                                  Widget screen;
+                                  switch (type) {
+                                    case 'restaurant':
+                                      screen = EditRestaurantScreen(
+                                          placeId:
+                                              id); 
+                                      break;
+                                    case 'appartement':
+                                      screen = EditAppartementScreen(
+                                          placeId:
+                                              id);
+                                      break;
+                                    default:
+                                      screen = EditMotelScreen(placeId: id);
+                                  }
+
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          EditMotelScreen(motelId: id),
-                                    ),
+                                    MaterialPageRoute(builder: (_) => screen),
                                   );
                                 } else if (value == 'delete') {
                                   _deleteMotel(context, id, images);
@@ -302,7 +319,7 @@ class ProfileScreen extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: Text("Confirmer la suppression"),
-        content: Text("Voulez-vous vraiment supprimer ce motel ?"),
+        content: Text("Voulez-vous vraiment supprimer ce lieu ?"),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -320,11 +337,11 @@ class ProfileScreen extends StatelessWidget {
           await deleteImageFromHostinger(img);
         }
 
-        await FirebaseFirestore.instance.collection('motels').doc(id).delete();
+        await FirebaseFirestore.instance.collection('places').doc(id).delete();
 
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Motel supprimé")),
+          SnackBar(content: Text("Lieu supprimé")),
         );
       } catch (e) {
         if (!context.mounted) return;

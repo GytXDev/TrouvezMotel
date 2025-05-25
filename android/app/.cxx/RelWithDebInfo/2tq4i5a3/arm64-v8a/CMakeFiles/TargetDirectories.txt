@@ -1,0 +1,2 @@
+C:/Users/Nathan/gytx_apps/TrouvezMotel/android/app/.cxx/RelWithDebInfo/2tq4i5a3/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/Nathan/gytx_apps/TrouvezMotel/android/app/.cxx/RelWithDebInfo/2tq4i5a3/arm64-v8a/CMakeFiles/rebuild_cache.dir

@@ -6,8 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/upload_service.dart';
 
 class EditMotelScreen extends StatefulWidget {
-  final String motelId;
-  EditMotelScreen({required this.motelId});
+  final String placeId;
+  EditMotelScreen({required this.placeId});
 
   @override
   _EditMotelScreenState createState() => _EditMotelScreenState();
@@ -41,8 +41,8 @@ class _EditMotelScreenState extends State<EditMotelScreen> {
 
   Future<void> _loadMotelData() async {
     final doc = await FirebaseFirestore.instance
-        .collection('motels')
-        .doc(widget.motelId)
+        .collection('places')
+        .doc(widget.placeId)
         .get();
     final data = doc.data() as Map<String, dynamic>;
 
@@ -139,8 +139,8 @@ class _EditMotelScreenState extends State<EditMotelScreen> {
       };
 
       await FirebaseFirestore.instance
-          .collection('motels')
-          .doc(widget.motelId)
+          .collection('places')
+          .doc(widget.placeId)
           .update({
         'name': name,
         'city': _selectedCity,
@@ -215,8 +215,8 @@ class _EditMotelScreenState extends State<EditMotelScreen> {
                       onChanged: (val) => setState(() => _selectedCity = val),
                       decoration: InputDecoration(
                         labelText: "Ville",
-                        border:
-                            OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8)),
                       ),
                       validator: (val) =>
                           val == null ? "Choisissez une ville" : null,

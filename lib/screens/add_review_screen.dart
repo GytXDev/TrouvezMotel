@@ -12,7 +12,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
   final _commentController = TextEditingController();
   bool _isSaving = false;
 
-  void _submitReview(String motelId) async {
+  void _submitReview(String placeId, String type) async {
     if (_rating == 0 || _commentController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Merci de noter et commenter.")),
@@ -29,23 +29,30 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
     final userDoc =
         await FirebaseFirestore.instance.collection('users').doc(userId).get();
     final userName = userDoc.data()?['name'] ?? 'Utilisateur';
+    final photoURL = user?.photoURL;
 
     await FirebaseFirestore.instance.collection('reviews').add({
-      'motelId': motelId,
+      'placeId': placeId,
+      'type': type,
       'userId': userId,
       'userName': userName,
       'comment': _commentController.text.trim(),
       'rating': _rating,
       'createdAt': FieldValue.serverTimestamp(),
       'timestampBackup': DateTime.now().toIso8601String(),
+      'photoURL': photoURL,
     });
 
+    if (!mounted) return;
     Navigator.pushReplacementNamed(context, '/thankYou');
   }
 
   @override
   Widget build(BuildContext context) {
-    final String motelId = ModalRoute.of(context)!.settings.arguments as String;
+    final Map<String, dynamic> args =
+        ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    final String placeId = args['placeId'];
+    final String type = args['type']; // 'motel', 'restaurant', 'appartement'
 
     return Scaffold(
       appBar: AppBar(title: Text("Donner un avis")),
@@ -58,7 +65,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                 style: Theme.of(context).textTheme.headlineSmall),
             SizedBox(height: 10),
             Text(
-              "Aidez les autres utilisateurs à faire le bon choix en partageant votre expérience. Qu’avez-vous aimé ? Que pourrait-on améliorer ?",
+              "Aidez les autres utilisateurs à faire le bon choix en partageant votre expérience.",
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             SizedBox(height: 24),
@@ -71,7 +78,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text("Notez ce motel",
+                  Text("Notez ce lieu",
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                   SizedBox(height: 10),
@@ -92,7 +99,7 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
               ),
             ),
             SizedBox(height: 30),
-            Text("Comment avez-vous trouvé ce motel ?",
+            Text("Comment avez-vous trouvé ce lieu ?",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
             SizedBox(height: 8),
             TextField(
@@ -129,7 +136,8 @@ class _AddReviewScreenState extends State<AddReviewScreen> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
                 ),
-                onPressed: _isSaving ? null : () => _submitReview(motelId),
+                onPressed:
+                    _isSaving ? null : () => _submitReview(placeId, type),
               ),
             ),
           ],

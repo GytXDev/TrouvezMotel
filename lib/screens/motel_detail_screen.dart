@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../theme.dart';
+
 class MotelDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -166,10 +168,42 @@ class MotelDetailScreen extends StatelessWidget {
                     },
                   ),
                 SizedBox(height: 10),
+                if (motel.containsKey('latitude') &&
+                    motel.containsKey('longitude'))
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: ElevatedButton.icon(
+                      icon: Icon(Icons.map),
+                      label: Text("Voir sur la carte"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.secondary,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        textStyle: Theme.of(context).textTheme.labelLarge,
+                      ),
+                      onPressed: () {
+                        final lat = motel['latitude'];
+                        final lng = motel['longitude'];
+                        final url = Uri.parse(
+                            "https://www.google.com/maps/search/?api=1&query=$lat,$lng");
+                        launchUrl(url, mode: LaunchMode.externalApplication);
+                      },
+                    ),
+                  ),
+                SizedBox(height: 10),
                 ElevatedButton.icon(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/addReview',
-                        arguments: motelId);
+                    Navigator.pushNamed(
+                      context,
+                      '/addReview',
+                      arguments: {
+                        'placeId': motelId, // ou restaurantId, ou appartementId
+                        'type': 'motel', // ou 'restaurant', ou 'appartement'
+                      },
+                    );
                   },
                   icon: Icon(Icons.rate_review),
                   label: Text("Donner un avis"),
@@ -178,7 +212,7 @@ class MotelDetailScreen extends StatelessWidget {
                 StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('reviews')
-                      .where('motelId', isEqualTo: motelId)
+                      .where('placeId', isEqualTo: motelId)
                       .orderBy('createdAt', descending: true)
                       .limit(3)
                       .snapshots(),
@@ -186,8 +220,9 @@ class MotelDetailScreen extends StatelessWidget {
                     if (!snapshot.hasData) return SizedBox();
                     final reviews = snapshot.data!.docs;
 
-                    if (reviews.isEmpty)
+                    if (reviews.isEmpty) {
                       return Text("Aucun avis pour le moment.");
+                    }
 
                     return AnimatedSwitcher(
                       duration: Duration(milliseconds: 300),

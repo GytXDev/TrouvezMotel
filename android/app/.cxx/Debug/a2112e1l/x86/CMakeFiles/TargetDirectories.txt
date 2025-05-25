@@ -1,0 +1,2 @@
+C:/Users/Nathan/gytx_apps/TrouvezMotel/android/app/.cxx/Debug/a2112e1l/x86/CMakeFiles/edit_cache.dir
+C:/Users/Nathan/gytx_apps/TrouvezMotel/android/app/.cxx/Debug/a2112e1l/x86/CMakeFiles/rebuild_cache.dir

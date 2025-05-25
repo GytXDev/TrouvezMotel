@@ -11,6 +11,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Position? _userPosition;
   String selectedFilterCity = "Tous";
+  String selectedType = "Motels";
   bool locationDenied = false;
 
   final List<String> _filterCities = [
@@ -21,6 +22,12 @@ class _HomeScreenState extends State<HomeScreen> {
     "Port-Gentil"
   ];
 
+  final List<Map<String, String>> _filterTypes = [
+    {"label": "🏨 Motels", "value": "Motels"},
+    {"label": "🍽️ Restaurants", "value": "Restaurants"},
+    {"label": "🏡 Appartements", "value": "Appartements"},
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -29,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _getUserLocation() async {
     final permission = await Geolocator.requestPermission();
-    if (!mounted) return; // ✅ vérifie que le widget est encore présent
+    if (!mounted) return;
 
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
@@ -46,20 +53,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  double _calculateDistance(double motelLat, double motelLng) {
+  double _calculateDistance(double lat, double lng) {
     return Geolocator.distanceBetween(
           _userPosition!.latitude,
           _userPosition!.longitude,
-          motelLat,
-          motelLng,
+          lat,
+          lng,
         ) /
         1000;
   }
 
-  Future<double> _getAverageRating(String motelId) async {
+  Future<double> _getAverageRating(String placeId) async {
     final reviews = await FirebaseFirestore.instance
         .collection('reviews')
-        .where('motelId', isEqualTo: motelId)
+        .where('placeId', isEqualTo: placeId)
         .get();
 
     if (reviews.docs.isEmpty) return 0.0;
@@ -72,7 +79,20 @@ class _HomeScreenState extends State<HomeScreen> {
     return total / reviews.docs.length;
   }
 
-  // Récupère le plus petit tarif
+  String getEmoji(String type) {
+    switch (type.toLowerCase()) {
+      case 'restaurant':
+        return '🍽️';
+      case 'appartements':
+      case 'appartement':
+        return '🏡';
+      case 'motels':
+      case 'motel':
+      default:
+        return '🏨';
+    }
+  }
+
   String getFirstPrice(Map<String, dynamic> data) {
     final pricesRaw = data['prices'];
     if (pricesRaw is Map) {
@@ -85,7 +105,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return 'N/A';
   }
 
-  // Shimmer
   Widget buildShimmerList() {
     return ListView.builder(
       itemCount: 5,
@@ -132,7 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
             ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               child: imageUrl.isNotEmpty
@@ -148,18 +166,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Icon(Icons.image_not_supported, size: 60),
                     ),
             ),
-            // Infos
             Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Nom
                   Text(
                     name,
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                  // Note
                   if (rating != null && rating > 0) ...[
                     SizedBox(height: 4),
                     Row(
@@ -169,26 +184,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           rating.toStringAsFixed(1),
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
+                              fontSize: 14, fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
                   ],
                   SizedBox(height: 4),
-                  // Tarif
-                  Text(
-                    '$city — À partir de $price FCFA',
-                    style: TextStyle(color: Colors.grey[700]),
-                  ),
-                  // Distance
+                  Text('$city — À partir de $price FCFA',
+                      style: TextStyle(color: Colors.grey[700])),
                   if (distance != null) ...[
                     SizedBox(height: 4),
-                    Text(
-                      'À ${distance.toStringAsFixed(1)} km',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                    ),
+                    Text('À ${distance.toStringAsFixed(1)} km',
+                        style:
+                            TextStyle(color: Colors.grey[500], fontSize: 12)),
                   ],
                 ],
               ),
@@ -206,15 +214,11 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Icon(Icons.location_off, size: 48, color: Colors.grey),
           SizedBox(height: 10),
-          Text(
-            "Localisation désactivée",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          ),
+          Text("Localisation désactivée",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
           SizedBox(height: 5),
-          Text(
-            "Activez-la pour afficher les motels proches.",
-            style: TextStyle(fontSize: 14, color: Colors.grey),
-          ),
+          Text("Activez-la pour afficher les résultats proches.",
+              style: TextStyle(fontSize: 14, color: Colors.grey)),
         ],
       ),
     );
@@ -227,7 +231,6 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🏷 Header
           Container(
             padding: EdgeInsets.only(top: 40, bottom: 16),
             decoration: BoxDecoration(
@@ -238,29 +241,23 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 12,
-                  offset: Offset(0, 4),
-                ),
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 12,
+                    offset: Offset(0, 4)),
               ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Titre
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(
-                    'Motels proches de vous',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: Text('Établissements proches de vous',
+                      style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
                 ),
                 SizedBox(height: 12),
-                // Choix de la ville
                 SizedBox(
                   height: 40,
                   child: ListView.builder(
@@ -270,7 +267,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     itemBuilder: (context, index) {
                       final city = _filterCities[index];
                       final selected = selectedFilterCity == city;
-
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: ChoiceChip(
@@ -290,33 +286,58 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                 ),
+                SizedBox(height: 10),
+                SizedBox(
+                  height: 40,
+                  child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _filterTypes.length,
+                      itemBuilder: (context, index) {
+                        final typeMap = _filterTypes[index];
+                        final label = typeMap['label']!;
+                        final value = typeMap['value']!;
+                        final selected = selectedType == value;
+
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(label),
+                            selected: selected,
+                            onSelected: (_) =>
+                                setState(() => selectedType = value),
+                            selectedColor: Colors.white,
+                            backgroundColor: Colors.white.withOpacity(0.2),
+                            labelStyle: TextStyle(
+                              color: selected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.black,
+                            ),
+                          ),
+                        );
+                      }),
+                ),
               ],
             ),
           ),
-
-          // 🏷 Corps
           Expanded(
             child: locationDenied
                 ? _buildLocationError()
                 : StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
-                        .collection('motels')
+                        .collection('places')
                         .orderBy('createdAt', descending: true)
                         .snapshots(),
                     builder: (context, snapshot) {
-                      // Si pas de data ou position manquante => shimmer
                       if (!snapshot.hasData || _userPosition == null) {
                         return buildShimmerList();
                       }
 
                       final docs = snapshot.data!.docs;
-
-                      // On convertit chaque doc
-                      final motelsWithDistance = docs
+                      final placesWithDistance = docs
                           .map((doc) {
                             final data = doc.data() as Map<String, dynamic>?;
-                            if (data == null) return null; // prudence
-                            final String id = doc.id;
+                            if (data == null) return null;
+                            final id = doc.id;
 
                             double? distance;
                             final lat = data['latitude'];
@@ -337,17 +358,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           .where((e) => e != null)
                           .toList();
 
-                      // Filtrage par ville
-                      final filteredMotels = motelsWithDistance.where((m) {
-                        // m peut être non-null car on a filtré ci-dessus
+                      final filteredPlaces = placesWithDistance.where((m) {
                         final data = m!['data'] as Map<String, dynamic>;
                         final city = data['city']?.toString() ?? '';
-                        if (selectedFilterCity == "Tous") return true;
-                        return city == selectedFilterCity;
+                        final type =
+                            data['type']?.toString().toLowerCase() ?? 'motel';
+                        final matchesCity = selectedFilterCity == "Tous" ||
+                            city == selectedFilterCity;
+                        final matchesType = type == selectedType.toLowerCase();
+                        return matchesCity && matchesType;
                       }).toList();
 
-                      // Tri par distance
-                      filteredMotels.sort((a, b) {
+                      filteredPlaces.sort((a, b) {
                         final distA =
                             a!['distance'] as double? ?? double.infinity;
                         final distB =
@@ -355,29 +377,25 @@ class _HomeScreenState extends State<HomeScreen> {
                         return distA.compareTo(distB);
                       });
 
-                      // Construction de la liste
                       return ListView.builder(
-                        itemCount: filteredMotels.length,
+                        itemCount: filteredPlaces.length,
                         itemBuilder: (context, index) {
-                          final motel = filteredMotels[index];
-                          final data = motel!['data'] as Map<String, dynamic>;
-                          final String id = motel['id'] as String;
-                          final double? distance = motel['distance'] as double?;
+                          final place = filteredPlaces[index];
+                          final data = place!['data'] as Map<String, dynamic>;
+                          final id = place['id'] as String;
+                          final distance = place['distance'] as double?;
 
                           final imageUrl =
                               (data['images'] as List?)?.first?.toString() ??
                                   '';
                           final name = data['name']?.toString() ?? 'Sans nom';
                           final city = data['city']?.toString() ?? '';
-
-                          // Récupère le plus petit tarif
                           final firstPrice = getFirstPrice(data);
 
                           return FutureBuilder<double>(
                             future: _getAverageRating(id),
                             builder: (context, ratingSnap) {
                               final rating = ratingSnap.data ?? 0.0;
-
                               return buildMotelCard(
                                 imageUrl: imageUrl,
                                 name: name,
@@ -385,11 +403,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                 price: firstPrice,
                                 distance: distance,
                                 rating: rating,
-                                onTap: () => Navigator.pushNamed(
-                                  context,
-                                  '/motelDetail',
-                                  arguments: id,
-                                ),
+                                onTap: () {
+                                  final type =
+                                      data['type']?.toString().toLowerCase();
+                                  String route;
+                                  switch (type) {
+                                    case 'restaurant':
+                                      route = '/restaurantDetail';
+                                      break;
+                                    case 'appartement':
+                                    case 'appartements':
+                                      route = '/appartementDetail';
+                                      break;
+                                    default:
+                                      route = '/motelDetail';
+                                  }
+
+                                  Navigator.pushNamed(context, route,
+                                      arguments: id);
+                                },
                               );
                             },
                           );

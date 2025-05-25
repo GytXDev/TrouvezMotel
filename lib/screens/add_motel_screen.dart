@@ -43,6 +43,7 @@ class _AddMotelScreenState extends State<AddMotelScreen> {
     "🛎️ Room Service": false,
     "🅿️ Parking": false,
   };
+  final selectedType = 'motel';
 
   @override
   void initState() {
@@ -137,7 +138,7 @@ class _AddMotelScreenState extends State<AddMotelScreen> {
             item['label']!.text: int.tryParse(item['price']!.text) ?? 0
       };
 
-      await FirebaseFirestore.instance.collection('motels').add({
+      await FirebaseFirestore.instance.collection('places').add({
         'name': _nameController.text.trim(),
         'city': _selectedCity,
         'quartier': _quartierController.text.trim(),
@@ -150,6 +151,7 @@ class _AddMotelScreenState extends State<AddMotelScreen> {
         'createdAt': FieldValue.serverTimestamp(),
         'createdBy': FirebaseAuth.instance.currentUser?.uid,
         'createdByEmail': FirebaseAuth.instance.currentUser?.email,
+        'type': selectedType,
       });
 
       if (!mounted) return;
