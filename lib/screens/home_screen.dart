@@ -11,7 +11,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   Position? _userPosition;
   String selectedFilterCity = "Tous";
-  String selectedType = "Motels";
+  String selectedType = "Motel";
   bool locationDenied = false;
 
   final List<String> _filterCities = [

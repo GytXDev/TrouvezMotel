@@ -66,10 +66,20 @@ class AppartementDetailScreen extends StatelessWidget {
                 SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.location_on, size: 18, color: Colors.grey),
-                    SizedBox(width: 4),
-                    Text("$quartier, $city",
-                        style: TextStyle(color: Colors.grey[700])),
+                    Chip(
+                      avatar: Text("🏢", style: TextStyle(fontSize: 16)),
+                      label: Text(
+                        quartier.isNotEmpty ? quartier : "Quartier non précisé",
+                        style: TextStyle(color: Colors.grey[800]),
+                      ),
+                      backgroundColor: Colors.grey[200],
+                      shape: StadiumBorder(),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      city,
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
                   ],
                 ),
                 SizedBox(height: 12),
@@ -145,8 +155,10 @@ class AppartementDetailScreen extends StatelessWidget {
                       context,
                       '/addReview',
                       arguments: {
-                        'placeId': appartementId, // ou restaurantId, ou appartementId
-                        'type': 'appartement', // ou 'restaurant', ou 'appartement'
+                        'placeId':
+                            appartementId, // ou restaurantId, ou appartementId
+                        'type':
+                            'appartement', // ou 'restaurant', ou 'appartement'
                       },
                     );
                   },

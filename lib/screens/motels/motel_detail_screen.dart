@@ -296,12 +296,12 @@ class MotelDetailScreen extends StatelessWidget {
                                             backgroundImage: photoUrl != null
                                                 ? NetworkImage(photoUrl)
                                                 : null,
+                                            backgroundColor: Colors.grey,
                                             child: photoUrl == null
                                                 ? Icon(Icons.person,
                                                     size: 16,
                                                     color: Colors.white)
                                                 : null,
-                                            backgroundColor: Colors.grey,
                                           ),
                                           SizedBox(width: 8),
                                           Text(
