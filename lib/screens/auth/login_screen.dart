@@ -2,9 +2,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../services/auth_service.dart';
+import '../../services/auth_service.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../theme.dart';
+import '../../theme.dart';
 
 class LoginScreen extends StatefulWidget {
   @override

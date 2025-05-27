@@ -7,19 +7,19 @@ import 'theme.dart';
 
 // Screens
 import 'screens/splash_screen.dart';
-import 'screens/login_screen.dart';
+import 'screens/auth/login_screen.dart';
 import 'main_navigation.dart';
 import 'screens/home_screen.dart';
-import 'screens/motel_detail_screen.dart';
-import 'screens/add_motel_screen.dart';
+import 'screens/motels/motel_detail_screen.dart';
+import 'screens/motels/add_motel_screen.dart';
 import 'screens/add_review_screen.dart';
 import 'screens/profile_screen.dart';
-import 'screens/access_expired_screen.dart';
-import 'screens/complete_profile_screen.dart';
+import 'screens/settings/access_expired_screen.dart';
+import 'screens/settings/complete_profile_screen.dart';
 import 'screens/support_screen.dart';
 import 'screens/thank_you_screen.dart';
-import 'screens/about_screen.dart';
-import 'screens/contact_screen.dart';
+import 'screens/settings/about_screen.dart';
+import 'screens/settings/contact_screen.dart';
 import 'screens/restaurants/add_restaurant_screen.dart';
 import 'screens/restaurants/restaurant_detail_screen.dart';
 import 'screens/appartements/add_appartement_screen.dart';

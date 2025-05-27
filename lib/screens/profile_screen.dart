@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../theme.dart';
 import 'appartements/edit_appartement_screen.dart';
-import 'edit_motel_screen.dart';
+import 'motels/edit_motel_screen.dart';
 import '../services/upload_service.dart'; // Pour deleteImageFromHostinger
 import 'package:url_launcher/url_launcher.dart';
 

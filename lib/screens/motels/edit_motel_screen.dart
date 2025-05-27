@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../services/upload_service.dart';
+import '../../services/upload_service.dart';
 
 class EditMotelScreen extends StatefulWidget {
   final String placeId;

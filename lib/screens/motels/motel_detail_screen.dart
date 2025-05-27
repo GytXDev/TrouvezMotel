@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../theme.dart';
+import '../../theme.dart';
 
 class MotelDetailScreen extends StatelessWidget {
   @override
@@ -32,7 +32,7 @@ class MotelDetailScreen extends StatelessWidget {
       appBar: AppBar(title: Text("Détails du motel")),
       body: FutureBuilder<DocumentSnapshot>(
         future:
-            FirebaseFirestore.instance.collection('motels').doc(motelId).get(),
+            FirebaseFirestore.instance.collection('places').doc(motelId).get(),
         builder: (context, snapshot) {
           if (snapshot.hasError)
             return Center(child: Text("Erreur de chargement"));
@@ -355,7 +355,7 @@ class MotelDetailScreen extends StatelessWidget {
   Future<double> _getAverageRating(String motelId) async {
     final reviews = await FirebaseFirestore.instance
         .collection('reviews')
-        .where('motelId', isEqualTo: motelId)
+        .where('placeId', isEqualTo: motelId)
         .get();
 
     if (reviews.docs.isEmpty) return 0.0;

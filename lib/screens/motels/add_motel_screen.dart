@@ -6,7 +6,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' as io;
 
-import '../services/upload_service.dart';
+import '../../services/upload_service.dart';
 
 class AddMotelScreen extends StatefulWidget {
   @override
