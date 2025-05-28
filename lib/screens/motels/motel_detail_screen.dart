@@ -3,8 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../../theme.dart';
-
 class MotelDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -34,10 +32,12 @@ class MotelDetailScreen extends StatelessWidget {
         future:
             FirebaseFirestore.instance.collection('places').doc(motelId).get(),
         builder: (context, snapshot) {
-          if (snapshot.hasError)
+          if (snapshot.hasError) {
             return Center(child: Text("Erreur de chargement"));
-          if (!snapshot.hasData || !snapshot.data!.exists)
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
             return Center(child: CircularProgressIndicator());
+          }
 
           final motel = snapshot.data!.data() as Map<String, dynamic>;
 
@@ -45,6 +45,8 @@ class MotelDetailScreen extends StatelessWidget {
           final city = motel['city'] ?? '';
           final quartier = motel['quartier'] ?? '';
           final contact = motel['contact'];
+          final lat = motel['latitude'];
+          final lng = motel['longitude'];
           final images = List<String>.from(motel['images'] ?? []);
           final prices = Map<String, dynamic>.from(motel['prices'] ?? {});
           final features = Map<String, dynamic>.from(motel['features'] ?? {});
@@ -103,6 +105,56 @@ class MotelDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+                Row(
+                  children: [
+                    if (contact != null && contact.toString().isNotEmpty)
+                      GestureDetector(
+                        onTap: () {
+                          final url =
+                              Uri.parse("https://wa.me/${contact.toString()}");
+                          launchUrl(url, mode: LaunchMode.externalApplication);
+                        },
+                        child: Image.asset(
+                          'assets/icons/whatsapp.png',
+                          height: 32,
+                          width: 32,
+                        ),
+                      ),
+                    SizedBox(width: 16),
+                    if (lat != null && lng != null)
+                      GestureDetector(
+                        onTap: () {
+                          final url = Uri.parse(
+                              "https://www.google.com/maps/search/?api=1&query=$lat,$lng");
+                          launchUrl(url, mode: LaunchMode.externalApplication);
+                        },
+                        child: Image.asset(
+                          'assets/icons/map.png',
+                          height: 32,
+                          width: 32,
+                        ),
+                      ),
+                    SizedBox(width: 16),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/addReview',
+                          arguments: {
+                            'placeId': motelId,
+                            'type': 'motel',
+                          },
+                        );
+                      },
+                      child: Image.asset(
+                        'assets/icons/rating.png',
+                        height: 32,
+                        width: 32,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
                 SizedBox(height: 12),
                 FutureBuilder<double>(
                   future: _getAverageRating(motelId),
@@ -136,10 +188,6 @@ class MotelDetailScreen extends StatelessWidget {
                       ),
                     )),
                 SizedBox(height: 20),
-                Text("Équipements",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-                SizedBox(height: 8),
                 Wrap(
                   spacing: 10,
                   runSpacing: 10,
@@ -151,62 +199,6 @@ class MotelDetailScreen extends StatelessWidget {
                       backgroundColor: Colors.grey.shade200,
                     );
                   }).toList(),
-                ),
-                SizedBox(height: 24),
-                if (contact != null && contact.toString().isNotEmpty)
-                  ElevatedButton.icon(
-                    icon: Icon(Icons.chat),
-                    label: Text("Contacter sur WhatsApp"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: () {
-                      final url =
-                          Uri.parse("https://wa.me/${contact.toString()}");
-                      launchUrl(url, mode: LaunchMode.externalApplication);
-                    },
-                  ),
-                SizedBox(height: 10),
-                if (motel.containsKey('latitude') &&
-                    motel.containsKey('longitude'))
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: ElevatedButton.icon(
-                      icon: Icon(Icons.map),
-                      label: Text("Voir sur la carte"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.secondary,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        textStyle: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      onPressed: () {
-                        final lat = motel['latitude'];
-                        final lng = motel['longitude'];
-                        final url = Uri.parse(
-                            "https://www.google.com/maps/search/?api=1&query=$lat,$lng");
-                        launchUrl(url, mode: LaunchMode.externalApplication);
-                      },
-                    ),
-                  ),
-                SizedBox(height: 10),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/addReview',
-                      arguments: {
-                        'placeId': motelId, // ou restaurantId, ou appartementId
-                        'type': 'motel', // ou 'restaurant', ou 'appartement'
-                      },
-                    );
-                  },
-                  icon: Icon(Icons.rate_review),
-                  label: Text("Donner un avis"),
                 ),
                 SizedBox(height: 30),
                 StreamBuilder<QuerySnapshot>(

@@ -225,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                  child: imageUrl.isNotEmpty
+                  child: imageUrl != ''
                       ? Image.network(
                           'https://gytx.dev/api/image-proxy.php?url=$imageUrl',
                           height: 180,
