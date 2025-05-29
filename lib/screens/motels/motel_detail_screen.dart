@@ -71,10 +71,17 @@ class MotelDetailScreen extends StatelessWidget {
                           child: Hero(
                             tag: 'motel-image-${images[index]}',
                             child: Image.network(
-                              'https://gytx.dev/api/image-proxy.php?url=${images[index]}',
+                              images[index],
                               height: 200,
                               width: double.infinity,
                               fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                height: 200,
+                                width: double.infinity,
+                                color: Colors.grey[300],
+                                child: Icon(Icons.broken_image, size: 60),
+                              ),
                             ),
                           ),
                         ),

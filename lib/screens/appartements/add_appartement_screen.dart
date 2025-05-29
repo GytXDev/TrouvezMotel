@@ -148,20 +148,11 @@ class _AddAppartementScreenState extends State<AddAppartementScreen> {
       });
 
       if (!mounted) return;
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text("Ajouté !"),
-          content: Text("L'appartement a été enregistré avec succès."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                  context, '/main', (_) => false),
-              child: Text("OK"),
-            )
-          ],
-        ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Appartement ajouté avec succès !")),
       );
+      Navigator.pushNamedAndRemoveUntil(context, '/main', (_) => false);
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur : ${e.toString()}")),
@@ -179,7 +170,12 @@ class _AddAppartementScreenState extends State<AddAppartementScreen> {
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
-        validator: (val) => val!.isEmpty ? "Ce champ est requis" : null,
+        validator: (val) => label.toLowerCase().contains('facultatif') ||
+                label.toLowerCase().contains('optionnel')
+            ? null
+            : val!.isEmpty
+                ? "Ce champ est requis"
+                : null,
         decoration: InputDecoration(labelText: label),
       ),
     );
@@ -241,6 +237,7 @@ class _AddAppartementScreenState extends State<AddAppartementScreen> {
                           validator: (val) =>
                               val == null ? "Choisissez une ville" : null,
                         ),
+                        SizedBox(height: 16),
                         _buildTextField(_quartierController, "Quartier"),
                         _buildTextField(_contactController, "Numéro WhatsApp",
                             keyboardType: TextInputType.phone),

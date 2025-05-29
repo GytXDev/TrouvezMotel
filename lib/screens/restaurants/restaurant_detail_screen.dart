@@ -10,6 +10,29 @@ class RestaurantDetailScreen extends StatelessWidget {
     final String restaurantId =
         ModalRoute.of(context)!.settings.arguments as String;
 
+    String getEmojiForCategory(String category) {
+      final normalized = category.toLowerCase();
+
+      if (normalized.contains('pizza')) return '🍕';
+      if (normalized.contains('cocktail')) return '🍸';
+      if (normalized.contains('vin')) return '🍷';
+      if (normalized.contains('boisson')) return '🥤';
+      if (normalized.contains('viande') || normalized.contains('grill')) {
+        return '🥩';
+      }
+      if (normalized.contains('dessert')) return '🍰';
+      if (normalized.contains('poisson')) return '🐟';
+      if (normalized.contains('poulet')) return '🍗';
+      if (normalized.contains('pâtes') || normalized.contains('pate')) {
+        return '🍝';
+      }
+      if (normalized.contains('burger')) return '🍔';
+      if (normalized.contains('riz')) return '🍚';
+      if (normalized.contains('salade')) return '🥗';
+
+      return '🍽️'; // emoji par défaut
+    }
+
     return Scaffold(
       appBar: AppBar(title: Text("Détails du restaurant")),
       body: FutureBuilder<DocumentSnapshot>(
@@ -71,10 +94,17 @@ class RestaurantDetailScreen extends StatelessWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: Image.network(
-                              'https://gytx.dev/api/image-proxy.php?url=${images[index]}',
+                              images[index],
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: 200,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                width: double.infinity,
+                                height: 200,
+                                color: Colors.grey[300],
+                                child: Icon(Icons.broken_image, size: 60),
+                              ),
                             ),
                           ),
                         );
@@ -194,7 +224,8 @@ class RestaurantDetailScreen extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Text("🍕", style: TextStyle(fontSize: 20)),
+                              Text(getEmojiForCategory(catName),
+                                  style: TextStyle(fontSize: 20)),
                               SizedBox(width: 6),
                               Text(
                                 catName,

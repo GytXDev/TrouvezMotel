@@ -115,6 +115,20 @@ class _SupportScreenState extends State<SupportScreen> {
       return;
     }
 
+    final startsWith = ['066', '062', '060', '065'];
+    if (startsWith.any((prefix) => numero.startsWith(prefix))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "Le paiement via Moov Money est momentanément indisponible.\nVeuillez utiliser un numéro Airtel Money.",
+            style: GoogleFonts.poppins(),
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(

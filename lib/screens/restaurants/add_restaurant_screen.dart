@@ -175,20 +175,10 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
       });
 
       if (!mounted) return;
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: Text("Succès"),
-          content: Text("Le restaurant a été ajouté avec succès."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                  context, '/main', (route) => false),
-              child: Text("OK"),
-            )
-          ],
-        ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Restaurant ajouté avec succès !")),
       );
+      Navigator.pushNamedAndRemoveUntil(context, '/main', (route) => false);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Erreur : ${e.toString()}")),
@@ -206,7 +196,12 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
         controller: controller,
         keyboardType: keyboardType,
         maxLines: maxLines,
-        validator: (val) => val!.isEmpty ? "Ce champ est requis" : null,
+        validator: (val) => label.toLowerCase().contains('facultatif') ||
+                label.toLowerCase().contains('optionnel')
+            ? null
+            : val!.isEmpty
+                ? "Ce champ est requis"
+                : null,
         decoration: InputDecoration(labelText: label),
       ),
     );
@@ -271,6 +266,9 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
                           validator: (val) =>
                               val == null ? "Choisissez une ville" : null,
                         ),
+                        SizedBox(
+                          height: 16,
+                        ),
                         _buildTextField(_quartierController, "Quartier"),
                         _buildTextField(_contactController, "Numéro WhatsApp",
                             keyboardType: TextInputType.phone),
@@ -278,15 +276,20 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
                             _descriptionController, "Description (facultatif)",
                             maxLines: 3),
                         SizedBox(height: 16),
-                        Text("Menu du restaurant",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16)),
                         Text(
-                          "Ajoutez des catégories (ex : Pizza, Boissons) et les plats avec leur prix.",
-                          style:
-                              TextStyle(fontSize: 13, color: Colors.grey[700]),
+                          "Menu du restaurant",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 16),
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: 6),
+                        Text(
+                          "Indiquez les catégories (ex : Pizza, Boissons) et ajoutez les plats avec leurs prix.",
+                          style: TextStyle(
+                              fontSize: 12.5,
+                              color: Colors.grey[600],
+                              height: 1.4),
+                        ),
+                        SizedBox(height: 16),
                         ..._menuCategories.asMap().entries.map((catEntry) {
                           final i = catEntry.key;
                           final cat = catEntry.value;
@@ -298,31 +301,70 @@ class _AddRestaurantScreenState extends State<AddRestaurantScreen> {
                               _buildTextField(
                                   cat['name'], "Nom de la catégorie"),
                               ...items.asMap().entries.map((entry) {
+                                final j = entry.key;
                                 final item = entry.value;
                                 return Row(
                                   children: [
                                     Expanded(
                                       child: _buildTextField(
-                                          item['label']!, "Plat"),
+                                        item['label']!,
+                                        "Plat",
+                                      ),
                                     ),
                                     SizedBox(width: 10),
                                     Expanded(
                                       child: _buildTextField(
-                                          item['price']!, "Prix FCFA",
-                                          keyboardType: TextInputType.number),
+                                        item['price']!,
+                                        "Prix FCFA",
+                                        keyboardType: TextInputType.number,
+                                      ),
                                     ),
+                                    if (items.length > 1)
+                                      IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            item['label']?.dispose();
+                                            item['price']?.dispose();
+                                            items.removeAt(j);
+                                          });
+                                        },
+                                        icon: Icon(Icons.remove_circle_outline,
+                                            color: Colors.red),
+                                      ),
                                   ],
                                 );
                               }),
-                              TextButton.icon(
-                                onPressed: () => _addItem(i),
-                                icon:
-                                    Icon(Icons.add_circle, color: Colors.green),
-                                label: Text("Ajouter un plat",
-                                    style: TextStyle(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.w600)),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  TextButton.icon(
+                                    onPressed: () => _addItem(i),
+                                    icon: Icon(Icons.add_circle,
+                                        color: Colors.green),
+                                    label: Text("Ajouter un plat",
+                                        style: TextStyle(
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.w600)),
+                                  ),
+                                  if (_menuCategories.length > 1)
+                                    IconButton(
+                                      icon: Icon(Icons.remove_circle_outline,
+                                          color: Colors.red),
+                                      onPressed: () {
+                                        setState(() {
+                                          cat['name']?.dispose();
+                                          for (var item in cat['items']) {
+                                            item['label']?.dispose();
+                                            item['price']?.dispose();
+                                          }
+                                          _menuCategories.removeAt(i);
+                                        });
+                                      },
+                                    ),
+                                ],
                               ),
+                              Divider(),
                               Divider(),
                             ],
                           );

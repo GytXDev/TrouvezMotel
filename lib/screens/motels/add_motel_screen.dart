@@ -203,7 +203,6 @@ class _AddMotelScreenState extends State<AddMotelScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Ajouter un motel'),
-        automaticallyImplyLeading: false,
       ),
       body: _locationDenied
           ? Center(

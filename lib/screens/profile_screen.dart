@@ -252,10 +252,19 @@ class ProfileScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                               child: image != ''
                                   ? Image.network(
-                                      'https://gytx.dev/api/image-proxy.php?url=$image',
+                                      image,
                                       width: 60,
                                       height: 60,
                                       fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Container(
+                                        width: 60,
+                                        height: 60,
+                                        color: Colors.grey[300],
+                                        child:
+                                            Icon(Icons.broken_image, size: 30),
+                                      ),
                                     )
                                   : Icon(Icons.image, size: 40),
                             ),
@@ -271,14 +280,12 @@ class ProfileScreen extends StatelessWidget {
                                   Widget screen;
                                   switch (type) {
                                     case 'restaurant':
-                                      screen = EditRestaurantScreen(
-                                          placeId:
-                                              id); 
+                                      screen =
+                                          EditRestaurantScreen(placeId: id);
                                       break;
                                     case 'appartement':
-                                      screen = EditAppartementScreen(
-                                          placeId:
-                                              id);
+                                      screen =
+                                          EditAppartementScreen(placeId: id);
                                       break;
                                     default:
                                       screen = EditMotelScreen(placeId: id);

@@ -227,10 +227,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                   child: imageUrl != ''
                       ? Image.network(
-                          'https://gytx.dev/api/image-proxy.php?url=$imageUrl',
+                          imageUrl,
                           height: 180,
                           width: double.infinity,
-                          fit: BoxFit.cover)
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                            height: 180,
+                            color: Colors.grey[300],
+                            child: Icon(Icons.broken_image, size: 60),
+                          ),
+                        )
                       : Container(
                           height: 180,
                           color: Colors.grey[300],

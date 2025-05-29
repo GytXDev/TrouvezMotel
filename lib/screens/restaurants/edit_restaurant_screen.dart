@@ -193,7 +193,12 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
         controller: controller,
         keyboardType: type,
         maxLines: maxLines,
-        validator: (val) => val!.isEmpty ? "Champ requis" : null,
+        validator: (val) => label.toLowerCase().contains('facultatif') ||
+                label.toLowerCase().contains('optionnel')
+            ? null
+            : val!.isEmpty
+                ? "Ce champ est requis"
+                : null,
         decoration: InputDecoration(
           labelText: label,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -247,6 +252,9 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                       validator: (val) =>
                           val == null ? "Choisissez une ville" : null,
                     ),
+                    SizedBox(
+                      height: 16,
+                    ),
                     _buildInputField(_quartierController, "Quartier"),
                     _buildInputField(_contactController, "Numéro WhatsApp",
                         type: TextInputType.phone),
@@ -257,6 +265,7 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                     Text("Menu",
                         style: TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 16)),
+                    SizedBox(height: 16),
                     ..._menuCategories.asMap().entries.map((catEntry) {
                       final i = catEntry.key;
                       final cat = catEntry.value;
@@ -267,6 +276,7 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                         children: [
                           _buildInputField(cat['name'], "Nom de la catégorie"),
                           ...items.asMap().entries.map((entry) {
+                            final j = entry.key;
                             final item = entry.value;
                             return Row(
                               children: [
@@ -280,6 +290,18 @@ class _EditRestaurantScreenState extends State<EditRestaurantScreen> {
                                       item['price']!, "Prix FCFA",
                                       type: TextInputType.number),
                                 ),
+                                if (items.length > 1)
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        item['label']?.dispose();
+                                        item['price']?.dispose();
+                                        items.removeAt(j);
+                                      });
+                                    },
+                                    icon: Icon(Icons.remove_circle_outline,
+                                        color: Colors.red),
+                                  ),
                               ],
                             );
                           }),

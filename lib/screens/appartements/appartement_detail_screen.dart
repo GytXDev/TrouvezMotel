@@ -68,10 +68,17 @@ class AppartementDetailScreen extends StatelessWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: Image.network(
-                              'https://gytx.dev/api/image-proxy.php?url=${images[index]}',
+                              images[index],
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: 200,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                width: double.infinity,
+                                height: 200,
+                                color: Colors.grey[300],
+                                child: Icon(Icons.broken_image, size: 60),
+                              ),
                             ),
                           ),
                         );
